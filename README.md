@@ -36,3 +36,9 @@ https://www.youtube.com/watch?feature=player_embedded&v=hsz0zq6AXGE
 https://www.youtube.com/watch?feature=player_embedded&v=R0vTZp0ve4s  
 
 http://ai.berkeley.edu/reinforcement.html
+
+## Maze Solution Instructions
+
+Download qLearningAgents.py
+Replace the existing reinforcement/qLearningAgents.py with the file you just downloaded
+run `/path/to/python /path/to/gridworld.py -a q -k 100`
