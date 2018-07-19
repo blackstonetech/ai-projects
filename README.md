@@ -40,5 +40,7 @@ http://ai.berkeley.edu/reinforcement.html
 ## Maze Solution Instructions
 
 Download qLearningAgents.py
+
 Replace the existing reinforcement/qLearningAgents.py with the file you just downloaded
+
 run `/path/to/python /path/to/gridworld.py -a q -k 100`
