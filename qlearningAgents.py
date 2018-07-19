@@ -11,6 +11,8 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+#Kyle Felter Solution
+
 
 from game import *
 from learningAgents import ReinforcementAgent
@@ -43,19 +45,19 @@ class QLearningAgent(ReinforcementAgent):
         ReinforcementAgent.__init__(self, **args)
         #init the 5x5 array
         self.QValues = []
-        Blank = [0.1, 0.0, 0.0, 0.0]
+        Blank = [0.0, 0.0, 0.0, 0.0]
         for x in range(5):
             self.QValues.append([])
             for y in range(5):
-                if (x,y) == (3,2):
-                    self.QValues[x].append(1)
-                else if (x,y) == (3,1):
-                    self.QValues[x].append(-1)
+                if [x,y] == [3,2]:
+                    self.QValues[x].append(0)
+                elif [x,y] == [3,1]:
+                    self.QValues[x].append(0)
                 else:
                     self.QValues[x].append(Blank)
 
         
-        print self.QValues
+        # print self.QValues
         self.getQV = lambda i: self.QValues if not i else(self.QValues[i[0]][i[1]])
         #self.setQV = lambda i,v: self.QValues if not i else(self.QValues[i[0]][i[1]] = v)
         "*** YOUR CODE HERE ***"
@@ -75,14 +77,14 @@ class QLearningAgent(ReinforcementAgent):
                 'east' : QMatrix[2],
                 'west' : QMatrix[3],
             }
-            print action_values
+            # print action_values
             return action_values[action]
         except:
             #print "Never seen this state, ret 0"
             #add state and action to matrix
-            print "Error in retrieving QValue"
-            print "state: ", state, "\naction: ", action
-            print "val: ", self.getQV(state)
+            # print "Error in retrieving QValue"
+            # print "state: ", state, "\naction: ", action
+            # print "val: ", self.getQV(state)
             return self.getQV(state)
 
             # Blank = [0.1, 0.0, 0.0, 0.0]
@@ -119,7 +121,22 @@ class QLearningAgent(ReinforcementAgent):
           terminal state, you should return a value of 0.0.
         """
         "*** YOUR CODE HERE ***"
-        return 0.0
+        legalActions = self.getLegalActions(state)
+        if legalActions[0] == 'exit':
+            return self.getQV(state)
+
+        qvs = self.getQV(state)
+        action_values = {
+                'north': qvs[0],
+                'south': qvs[1],
+                'east' : qvs[2],
+                'west' : qvs[3],
+        }
+        max = -2.0
+        for action in legalActions:
+            if action_values[action] > max:
+                max = action_values[action]
+        return max
 
     def computeActionFromQValues(self, state):
         """
@@ -128,7 +145,34 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        return 'north'
+        legalActions = self.getLegalActions(state)
+        if legalActions[0] == 'exit':
+            return 'None'
+
+        qvs = self.getQV(state)
+        
+        action_values = {
+                'north': qvs[0],
+                'south': qvs[1],
+                'east' : qvs[2],
+                'west' : qvs[3],
+        }
+        max = 0.0
+        for action in legalActions:
+            if action_values[action] > max:
+                max = action_values[action]
+        
+        if max == 0:
+            return random.choice(legalActions)
+
+        value_actions = {
+                qvs[0] : 'north',
+                qvs[1] : 'south',
+                qvs[2] : 'east' ,
+                qvs[3] : 'west' ,
+        }
+
+        return value_actions[max]
 
     def getAction(self, state):
         """
@@ -143,9 +187,10 @@ class QLearningAgent(ReinforcementAgent):
         """
         # Pick Action
         legalActions = self.getLegalActions(state)
+        print "legal actions", legalActions
         if legalActions[0] == 'exit':
             return 'exit'
-        print legalActions
+        
         #roll a random number to see if its in epsilon
         if random.uniform(0,1) < self.epsilon:
             #explore, choose random legal action
@@ -164,6 +209,33 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
+        print state, action, nextState, reward
+        
+
+        if nextState == 'TERMINAL_STATE':
+            self.QValues[state[0]][state[1]] = (self.getQV(state) + reward) / 2.0
+            return
+
+        actions = {
+            'north':0,
+            'south':1,
+            'east':2,
+            'west':3,
+        }
+        QVals = self.getQV(state)
+        newQV = QVals[actions[action]] + self.alpha*(reward + self.discount*self.computeValueFromQValues(nextState) - QVals[actions[action]] )
+        #newQV = (QVals[actions[action]] + reward + self.computeValueFromQValues(nextState)*0.9)
+        print newQV, self.QValues[state[0]][state[1]][actions[action]]
+        # make new qv array
+        if action == 'north':
+            self.QValues[state[0]][state[1]] = [newQV, QVals[1], QVals[2], QVals[3]]
+        elif action == 'south':
+            self.QValues[state[0]][state[1]] = [QVals[0], newQV, QVals[2], QVals[3]]
+        elif action == 'east':
+            self.QValues[state[0]][state[1]] = [QVals[0], QVals[1], newQV, QVals[3]]
+        else:
+            self.QValues[state[0]][state[1]] = [QVals[0], QVals[1], QVals[2], newQV]
+
         return 0.0
 
     def getPolicy(self, state):
